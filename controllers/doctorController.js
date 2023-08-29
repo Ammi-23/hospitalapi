@@ -1,5 +1,6 @@
 const Doctor= require('../models/doctor');
 const jwt= require('jsonwebtoken');//to generate jwt tokens for user 
+const bcrypt= require('bcryptjs');
 
 //To register or create Doctor
 module.exports.register= async function(req,res){
@@ -19,6 +20,7 @@ module.exports.register= async function(req,res){
         password: password
     })
     .then((newDoctor)=> {
+        newDoctor.password= newDoctor.generateHash(password);
         newDoctor.save();
         // Send JSON response with status 200
         return res.status(200).json({
@@ -43,8 +45,8 @@ module.exports.login= async function(req,res){
         const user= await Doctor.findOne({email: email});
         
         //if user not found or password doesnot match
-        if(!user || user.password != password){
-            //let isEqual=user.validPassword(password);           
+        let isEqual=user.validPassword(password);
+        if(!user || !isEqual){        
             return res.status(422).json({
                 message:'Invalid Username or Password'
             })
